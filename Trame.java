@@ -16,4 +16,20 @@ public class Trame {
     public String makeTrame(){
         return (this.flag+this.type+this.num+this.donnee+this.crc+this.flag);
     }
+
+    public String getCRC(){
+        return this.crc;
+    }
+
+    public String getNum(){
+        return this.num;
+    }
+
+    public String getType(){
+        return this.type;
+    }
+
+    public String getDonnee(){
+        return this.donnee;
+    }
 }

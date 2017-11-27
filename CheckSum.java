@@ -1,4 +1,5 @@
 public class CheckSum {
+    Conversion cs = new Conversion();
 /*
     final class Builders {
         private StringBuilder zeros = new StringBuilder();
@@ -72,7 +73,7 @@ public class CheckSum {
             } else if (curr.charAt(0) == '1' && polyGen.charAt(0) == '1'){
                 resultat.append("1");
             }else{
-                System.out.println("cas particulier");
+                System.out.println("cas particulier puant");
             }
 
             for (int i = 1; i < polyGen.length(); i++) {
@@ -113,7 +114,8 @@ public class CheckSum {
 
     public boolean verifyCheckSum(String polyGen,String data){
         StringBuilder curr = makeDivision(polyGen,data);
-        if (Integer.parseInt(curr.toString())!= 0){
+        System.out.println(curr.toString());
+        if (cs.binaryStringToDecimal(curr.toString())!= 0){
             return false;
         }
         return true;

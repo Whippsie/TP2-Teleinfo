@@ -1,3 +1,4 @@
+import javax.rmi.CORBA.Util;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Timer;
@@ -49,11 +50,14 @@ public class Client {
             CheckSum chck = new CheckSum();
             Conversion convert = new Conversion();
             BitStuff bitstuff = new BitStuff();
+            Utility util = new Utility();
             int testoo = 0;
-            while (testoo<3){
+            while (testoo<1){
                 if (!connected){
+
+                    String toSend = util.makeTrame("C","0","",polyGen);
                     // Demande connexion, création trame C
-                    String typeC = convert.typeToBinary("C");
+                    /*String typeC = convert.typeToBinary("C");
                     String num = convert.completeByte(Integer.toString(0),8);
                     String donnee = "";
                     String checkValue = chck.applyCheckSum(typeC+num+donnee,polyGen);
@@ -62,6 +66,7 @@ public class Client {
                     Trame trameConnexion = new Trame(typeC, num, donnee, checkValue);
                     trameConnexion.print();
                     String toSend = trameConnexion.makeTrame();
+                    */
                     toSend = bitstuff.bitstuffIn(toSend);
                     System.out.println("Sending to server:" + toSend);
                     out.println(toSend);

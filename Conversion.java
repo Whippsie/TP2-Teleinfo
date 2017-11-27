@@ -12,21 +12,23 @@ public class Conversion {
         return str.toString();
     }
 
-    public String typeToBinary (String charac){
+    public String typeToBinary (String charac, boolean complete){
         StringBuilder result = new StringBuilder();
         char[] messChar = charac.toCharArray();
 
         for (int i = 0; i < messChar.length; i++) {
             result.append(Integer.toBinaryString(messChar[i]));
         }
-        result = completeByte(result,8);
+        if (complete) {
+            result = completeByte(result, 8);
+        }
         //byte[] encoded = charac.getBytes(StandardCharsets.UTF_8);
         //System.out.println(encoded);
         //System.out.println ("Converted " + charac + " into " + result);
         return result.toString();
     }
 
-    private StringBuilder completeByte(StringBuilder curr, int multiple){
+    public StringBuilder completeByte(StringBuilder curr, int multiple){
         while (curr.length() != multiple){
             curr.insert(0, '0');
         }
@@ -42,5 +44,20 @@ public class Conversion {
         }
         sb.append(curr);
         return sb.toString();
+    }
+
+    public static int binaryStringToDecimal(String biString){
+        int n = biString.length();
+        int decimal = 0;
+        for (int d = 0; d < n; d++){
+            // append a bit=0 (i.e. shift left)
+            decimal = decimal << 1;
+
+            // if biStr[d] is 1, flip last added bit=0 to 1
+            if (biString.charAt(d) == '1'){
+                decimal = decimal | 1; // e.g. dec = 110 | (00)1 = 111
+            }
+        }
+        return decimal;
     }
 }

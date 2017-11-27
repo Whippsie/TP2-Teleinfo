@@ -1,5 +1,6 @@
 import java.net.*;
 import java.io.*;
+import java.util.zip.Checksum;
 
 //Demande connexion, choix Go Back N?
 
@@ -20,6 +21,7 @@ C'est quoi p-bit? p après disconnect pour avoir réponse
 
 //http://www.oracle.com/technetwork/java/socket-140484.html
 public class Serveur {
+    private static String polyGen = "10001000000100001";
     public static void main(String[] args) throws IOException {
 
         if (args.length != 1) {
@@ -41,11 +43,66 @@ public class Serveur {
             //DO STUFF
             BitStuff bitstuff = new BitStuff();
             String inputLine;
-            while ((inputLine = in.readLine()) != null) {
-                //System.out.println("Server received: "+inputLine);
+            boolean end = false;
+            while (!end && (inputLine = in.readLine()) != null) {
+
+                //Classes utilitaires
+                Conversion cs = new Conversion();
+                CheckSum chk = new CheckSum();
+                Utility util = new Utility();
+
+
+                System.out.println("Server received: "+inputLine);
                 inputLine = bitstuff.bitstuffOut(inputLine);
                 Trame trameReceived = bitstuff.readTrame(inputLine);
                 trameReceived.print();
+                //On commence par aller chercher le type de la trame
+                String type = trameReceived.getType();
+                //Ensuite son numero
+                String num = trameReceived.getNum();
+
+                //Son CRC
+                String fullCRC = trameReceived.getCRC();
+                System.out.println("BEFORE"+fullCRC);
+                fullCRC = fillCRC(fullCRC,type,trameReceived.getNum());
+                boolean result = chk.verifyCheckSum(polyGen, fullCRC);
+                System.out.println("FULLCRC"+fullCRC);
+
+                //Type vaut le char correspondant
+                type = cs.binaryToType(type);
+                //Ses données
+                String donnee = trameReceived.getDonnee();
+                String toSend;
+                //On verifie le type de la trame
+                switch (type.charAt(0)) {
+                    case 'C':
+                        toSend = util.makeTrame("A", num, "", polyGen);
+                        toSend = bitstuff.bitstuffIn(toSend);
+                        out.println(toSend);
+                        break;
+                    case 'F':
+                        end = true;
+                        break;
+                    case 'P':
+                        //do stuff
+                        break;
+                    case 'I':
+                        //Trame sans erreur
+                        if (result) {
+                            toSend = util.makeTrame("A", num, "", polyGen);
+                            toSend = bitstuff.bitstuffIn(toSend);
+                            out.println(toSend);
+                        } else {
+                            toSend = util.makeTrame("R", num, donnee, polyGen);
+                            toSend = bitstuff.bitstuffIn(toSend);
+                            out.println(toSend);
+                        }
+                        break;
+                    default:
+                        System.out.println("None of the catch");
+                }
+
+
                 out.println(inputLine);
             }
         } catch (IOException e) {
@@ -55,5 +112,17 @@ public class Serveur {
         }
     }
 
+    private static String fillCRC(String fullc, String type, String num){
+        StringBuilder sb = new StringBuilder();
+        for (int i =0 ; i < type.length();i++){
+            sb.append(type.charAt(i));
+        }
 
+        for (int i =0 ; i < num.length();i++){
+            sb.append(num.charAt(i));
+        }
+        sb.append(fullc);
+
+        return sb.toString();
+    }
 }

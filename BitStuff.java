@@ -55,7 +55,7 @@ public class BitStuff {
         for (int i=curr;i<next;i++){
             flag.append(trame.charAt(i));
         }
-        System.out.println(flag.toString());
+
         if (!flag.toString().equals("01111110")){
             System.out.println("On a un probleme debut");
         }

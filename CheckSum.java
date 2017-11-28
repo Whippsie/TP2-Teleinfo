@@ -114,10 +114,23 @@ public class CheckSum {
 
     public boolean verifyCheckSum(String polyGen,String data){
         StringBuilder curr = makeDivision(polyGen,data);
-        System.out.println(curr.toString());
+        //System.out.println(curr.toString());
         if (cs.binaryStringToDecimal(curr.toString())!= 0){
             return false;
         }
         return true;
+    }
+
+    public String removezeroes(String remainder){
+        StringBuilder sb = new StringBuilder();
+        for (int i=0;i<remainder.length();i++){
+            sb.append(remainder.charAt(i));
+        }
+        int j =0;
+        while (remainder.charAt(j)=='0'){
+            sb.deleteCharAt(0);
+            j++;
+        }
+        return sb.toString();
     }
 }

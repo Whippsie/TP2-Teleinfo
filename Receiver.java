@@ -20,12 +20,12 @@ C'est quoi p-bit? p après disconnect pour avoir réponse
 */
 
 //http://www.oracle.com/technetwork/java/socket-140484.html
-public class Serveur {
+public class Receiver {
     private static String polyGen = "10001000000100001";
     public static void main(String[] args) throws IOException {
 
         if (args.length != 1) {
-            System.err.println("CheckSum: java Serveur <port number>");
+            System.err.println("Utilisation: java % Receiver <Numero_Port>");
             System.exit(1);
         }
 
@@ -50,7 +50,7 @@ public class Serveur {
                 Conversion cs = new Conversion();
                 CheckSum chk = new CheckSum();
                 Utility util = new Utility();
-
+                Tests tests = new Tests();
 
                 System.out.println("Server received: "+inputLine);
                 inputLine = bitstuff.bitstuffOut(inputLine);
@@ -60,50 +60,67 @@ public class Serveur {
                 String type = trameReceived.getType();
                 //Ensuite son numero
                 String num = trameReceived.getNum();
+                //Ses données
+                String donnee = trameReceived.getDonnee();
 
                 //Son CRC
+                //String fullCRC = chk.removezeroes(trameReceived.getCRC());
                 String fullCRC = trameReceived.getCRC();
-                System.out.println("BEFORE"+fullCRC);
-                fullCRC = fillCRC(fullCRC,type,trameReceived.getNum());
+                fullCRC = fillCRC(fullCRC,type,trameReceived.getNum(),donnee);
                 boolean result = chk.verifyCheckSum(polyGen, fullCRC);
-                System.out.println("FULLCRC"+fullCRC);
 
                 //Type vaut le char correspondant
                 type = cs.binaryToType(type);
-                //Ses données
-                String donnee = trameReceived.getDonnee();
-                String toSend;
-                //On verifie le type de la trame
-                switch (type.charAt(0)) {
-                    case 'C':
-                        toSend = util.makeTrame("A", num, "", polyGen);
-                        toSend = bitstuff.bitstuffIn(toSend);
-                        out.println(toSend);
-                        break;
-                    case 'F':
-                        end = true;
-                        break;
-                    case 'P':
-                        //do stuff
-                        break;
-                    case 'I':
-                        //Trame sans erreur
-                        if (result) {
+
+                String toSend = "";
+                space();
+                boolean tag = true;
+                tests.bufferOut();
+                //Si une erreur dans la trame, on refuse directement
+                if (!result) {
+                    System.out.println("ERROR - CRC INVALID");
+                    toSend = util.makeTrame("R", num, donnee, polyGen);
+                    toSend = bitstuff.bitstuffIn(toSend);
+                    System.out.println("Sending to client: " + toSend);
+                    tag = false;
+                    out.println(toSend);
+
+                }
+
+                if (tag){
+
+                    //On verifie le type de la trame
+                    switch (type.charAt(0)) {
+                        case 'C':
+                            System.out.println("Sending to client... ");
                             toSend = util.makeTrame("A", num, "", polyGen);
                             toSend = bitstuff.bitstuffIn(toSend);
+                            System.out.println("Sent: " + toSend);
                             out.println(toSend);
-                        } else {
-                            toSend = util.makeTrame("R", num, donnee, polyGen);
+                            break;
+                        case 'F':
+                            end = true;
+                            break;
+                        case 'P':
+                            //do stuff
+                            break;
+                        case 'I':
+                            //Trame sans erreur
+                            System.out.println("Sending to client... ");
+                            toSend = util.makeTrame("A", num, "", polyGen);
                             toSend = bitstuff.bitstuffIn(toSend);
+                            System.out.println("Sent: " + toSend);
                             out.println(toSend);
-                        }
-                        break;
-                    default:
-                        System.out.println("None of the catch");
+                            break;
+                        default:
+                            System.out.println("--None of the catch--");
+                    }
+                    space();
+                    line();
                 }
 
 
-                out.println(inputLine);
+                //out.println(inputLine);
             }
         } catch (IOException e) {
             System.out.println("Exception caught when trying to listen on port "
@@ -111,17 +128,26 @@ public class Serveur {
             System.out.println(e.getMessage());
         }
     }
+    private static void space(){
+        System.out.println(" ");
+    }
 
-    private static String fillCRC(String fullc, String type, String num){
+    private static void line(){
+        System.out.println(" --------------------------------------- ");
+    }
+    private static String fillCRC(String fullc, String type, String num, String donnee){
         StringBuilder sb = new StringBuilder();
+        /*
         for (int i =0 ; i < type.length();i++){
             sb.append(type.charAt(i));
         }
 
         for (int i =0 ; i < num.length();i++){
             sb.append(num.charAt(i));
-        }
-        sb.append(fullc);
+        }*/
+        sb.append(type).append(num).append(donnee).append(fullc);
+        //sb.append(donnee);
+        //sb.append(fullc);
 
         return sb.toString();
     }

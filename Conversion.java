@@ -22,8 +22,6 @@ public class Conversion {
         if (complete) {
             result = completeByte(result, 8);
         }
-        //byte[] encoded = charac.getBytes(StandardCharsets.UTF_8);
-        //System.out.println(encoded);
         //System.out.println ("Converted " + charac + " into " + result);
         return result.toString();
     }
@@ -59,5 +57,9 @@ public class Conversion {
             }
         }
         return decimal;
+    }
+
+    public static String decimalToBinary(int decimal){
+        return Integer.toBinaryString(decimal);
     }
 }

@@ -1,7 +1,4 @@
 package Tools;
-
-import java.nio.charset.StandardCharsets;
-
 public class Utility {
     Conversion cs = new Conversion();
     CheckSum ch = new CheckSum();
@@ -22,17 +19,6 @@ public class Utility {
         trameMade.print();
         // Retourne la concaténation des valeurs binaires
         return trameMade.makeTrame();
-    }
-
-    // Prend des chars et les transforme en tableau de bytes
-    public byte[] toBinaryFromString(String s){
-        return s.getBytes(StandardCharsets.UTF_8);
-
-    }
-
-    // Prend un int et le convertir en binaire
-    public String toBinaryFromInt(int i){
-        return (Integer.toBinaryString(i));
     }
 
     /* S'occupe de prendre la trame en format binaire et de fetch les données pour créer un objet Tools.Trame*/

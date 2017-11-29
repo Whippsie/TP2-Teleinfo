@@ -34,10 +34,6 @@ public class CheckSum {
         //Fait la division
         StringBuilder curr = makeDivision(polyGen,data);
 
-        //Obtient le Tx, on ne l'utilise pas dans ce TP
-        String tX = genTx(dataInit,curr.toString());
-        //System.out.println("T(x) = " + tX);
-
         //Retourne uniquement le reste de la division pour fit sur 16 bits
         return curr.toString();
     }
@@ -100,14 +96,6 @@ public class CheckSum {
         }
         // Retourne le reste (le dernier current)
         return curr;
-    }
-
-    // Pas utilisé dans ce TP
-    private static String genTx(String mX, String rX){
-        for (int i =0; i< rX.length();i++){
-            mX += rX.charAt(i);
-        }
-        return mX;
     }
 
     /* Utilisé par serveur pour valider le CRC */

@@ -4,22 +4,13 @@ import java.nio.charset.StandardCharsets;
 
 public class Conversion {
 
-    //https://stackoverflow.com/questions/8634527/converting-binary-data-to-characters-in-java
-    public String binaryToType (String charac){
-        StringBuilder str = new StringBuilder();
-        for (int i = 0; i < charac.length()/8; i++) {
-            int a = Integer.parseInt(charac.substring(8*i,(i+1)*8),2);
-            str.append((char)(a));
-        }
-        return str.toString();
-    }
-
+    //Va chercher tous les chars (ici un seul) et le transforme en binary string
     public String typeToBinary (String charac, boolean complete){
         StringBuilder result = new StringBuilder();
-        char[] messChar = charac.toCharArray();
+        char[] resChar = charac.toCharArray();
 
-        for (int i = 0; i < messChar.length; i++) {
-            result.append(Integer.toBinaryString(messChar[i]));
+        for (int i = 0; i < resChar.length; i++) {
+            result.append(Integer.toBinaryString(resChar[i]));
         }
         if (complete) {
             result = completeByte(result, 8);
@@ -27,7 +18,25 @@ public class Conversion {
         return result.toString();
     }
 
-    //Complete le chiffre avec des zéros à gauche
+    //Inspiré de https://stackoverflow.com/questions/8634527/converting-binary-data-to-characters-in-java
+    public String binaryToType (String charac){
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < charac.length()/8; i++) {
+            //Prend chaque suite de 8 zéro ou un et va chercher sa valeur en int
+            //Parse back en char
+            sb.append((char) Integer.parseInt(charac.substring(8*i,(i+1)*8),2));
+        }
+        return sb.toString();
+    }
+
+
+    // Prend des chars et les transforme en tableau de bytes
+    public byte[] toBinaryFromString(String s){
+        return s.getBytes(StandardCharsets.UTF_8);
+
+    }
+
+    //Complète le chiffre avec des zéros à gauche
     public StringBuilder completeByte(StringBuilder curr, int multiple){
         while (curr.length() != multiple){
             curr.insert(0, '0');
@@ -49,18 +58,7 @@ public class Conversion {
 
     //Prend un string binaire et le traduit en nombre décimal
     public static int binaryStringToDecimal(String biString){
-        int n = biString.length();
-        int decimal = 0;
-        for (int d = 0; d < n; d++){
-            // append a bit=0 (i.e. shift left)
-            decimal = decimal << 1;
-
-            // if biStr[d] is 1, flip last added bit=0 to 1
-            if (biString.charAt(d) == '1'){
-                decimal = decimal | 1; // e.g. dec = 110 | (00)1 = 111
-            }
-        }
-        return decimal;
+        return Integer.parseInt(biString, 2);
     }
 
     //Prend un nombre décimal et le traduit en binaire

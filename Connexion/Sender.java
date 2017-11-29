@@ -1,28 +1,22 @@
 package Connexion;
-
 import Test.Tests;
 import Tools.*;
-
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Timer;
 import java.io.*;
 import java.net.*;
-import java.util.TimerTask;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
-//http://www.ee.unb.ca/cgi-bin/tervo/calc.pl?num=010010010000000111000011101100110110011011110111001110010000&den=10001000000100001&f=d&e=1&m=1
 public class Sender {
-    private static CheckSum chck = new CheckSum();
     private static Conversion convert = new Conversion();
     private static BitStuff bitstuff = new BitStuff();
     private static Utility util = new Utility();
     private static Tests test = new Tests();
     private static boolean once = true;
-    //3 bits, start at 1
+    private static String polyGen = "10001000000100001";
+    private static int timeout = 0;
+    //3 bits
     private static int windows = 7;
+
+
     public static void main(String[] args) throws IOException {
 
         if (args.length != 4) {
@@ -30,26 +24,21 @@ public class Sender {
                     "Tools.CheckSum: java Sender <Nom_Machine> <Numero_Port> <Nom_fichier> <0>");
             System.exit(1);
         }
-        //First command line argument
         String hostName = args[0];
-        //Second, must be full IP
         int portNumber = Integer.parseInt(args[1]);
         String nomFichier = args[2];
         String protocole = args[3];
 
         if (protocole.equals(Integer.toString(0))){
-            int res = makeSocket(hostName,portNumber, protocole, nomFichier);
+            while (timeout<3) {
+                int res = makeSocket(hostName, portNumber, protocole, nomFichier);
+                if (res ==0){
+                    timeout+=1;
+                }
+            }
         }else{
             System.out.println("Seul le protocole GO Back N (0) est accepté dans ce projet.");
         }
-        //int attempt = 0;
-        //while (attempt < 3){
-
-          //if (res ==0){
-            //  attempt +=1;
-          //}
-        //}
-        //System.exit(1);
     }
     private static class Paquet{
         String trame;
@@ -79,6 +68,8 @@ public class Sender {
             return this.indexTableau;
         }
     }
+
+
     private static int makeSocket(String hostName, int portNumber, String protocole, String nomFile){
 
         try (
@@ -90,11 +81,12 @@ public class Sender {
                         new BufferedReader(
                                 new InputStreamReader(mySocket.getInputStream()));
         ) {
+            if (timeout > 0){
+                String toSend = util.makeTrame("P",convert.decimalToBinary(0),"",polyGen);
+                toSend = bitstuff.bitstuffIn(toSend);
+                out.println(toSend);
+            }
             boolean connected = false;
-            boolean mytest = true;
-            String polyGen = "10001000000100001";
-            boolean wait = false;
-            boolean end = false;
             int countTrameI = 1;
             int countSent = 0;
             int countCurr = 0;
@@ -102,8 +94,8 @@ public class Sender {
             ArrayList <String> tableauData = readFile(nomFile);
             ArrayList <Paquet> currentData = getAllData(tableauData, 0);
             while (countSent < tableauData.size()){
-            //while (trameAlive(currentData)){
-                System.out.println("sent:" + countSent);
+                line();
+                System.out.println("Trame confirmed:" + countSent);
                 if (!connected){
                     //TEST 1 : TIME OUT
                     mySocket.setSoTimeout(3000);
@@ -112,6 +104,7 @@ public class Sender {
                     String toSend = util.makeTrame("C",protocole,"",polyGen);
                     toSend = bitstuff.bitstuffIn(toSend);
                     System.out.println("Sending to server: " + toSend);
+                    line();
                     out.println(toSend);
                     String response = in.readLine();
                     space();
@@ -125,7 +118,7 @@ public class Sender {
                     trameReceived.print();
                     if (convert.binaryToType(trameReceived.getType()).charAt(0) == 'A' && Integer.parseInt(trameReceived.getNum(),2) == 0){
                         //On a reçu une confirmation pour l'ouverture de session
-
+                        timeout=0;
                         space();
                         System.out.println("++  Connexion established!! ++");
                         space();
@@ -134,22 +127,17 @@ public class Sender {
 
                     }
                 }else{
-                    //Reprendre le message
-                    //String donnee = new String(tableau, "UTF-8");
                     String donnee = "";
                     String toSend = "";
-                    //while (countTrameI != windows && countSent != tableauData.size()){
                     while (currWindow < windows && countCurr < currentData.size()){
-                        System.out.println("curr tableau" + countCurr);
-                        if (countTrameI == windows+1){
-                            countTrameI = (countTrameI % windows);
+                        //Windows est de 0 à 7, mais les trames sont de 1 à 8
+                        if (countTrameI == windows+2){
+                            countTrameI = ((countTrameI-1) % windows);
                         }
                         System.out.println("SENDING information...");
                         //Envoi trame I
-                        //System.out.println("sent:" + countSent + " | curr:" + countCurr);
                         donnee = convertDonnee(currentData.get(countCurr).getTrame());
-                        System.out.println("count trame i" + countTrameI);
-                        toSend = util.makeTrame("I",util.toBinaryFromInt(countTrameI),donnee,polyGen);
+                        toSend = util.makeTrame("I",convert.decimalToBinary(countTrameI),donnee,polyGen);
                         countCurr +=1;
                         countTrameI +=1;
                         currWindow +=1;
@@ -167,24 +155,25 @@ public class Sender {
                             out.println(toSend);
                         }*/
                         //TEST 3 : Switch de bits
-                        //Switch dans le type
+
                         if (once) {
-                            toSend = test.bitShift(12, toSend);
+                            //Switch dans le type
+                            //toSend = test.bitShift(12, toSend);
+                            //Switch dans le numéro
+                            //toSend = test.bitShift(22,toSend);
+                            //Switch dans les données
+                            //toSend = test.bitShift(25,toSend);
                             once = false;
                         }
-                        //Switch dans le numéro
-                        //toSend = test.bitShift(18,toSend);
-                        //Switch dans les données
-                        //toSend = test.bitShift(25,toSend);
+
                         out.println(toSend);
-
-
 
                     }
 
                     //Fetching answer
                     String resp = in.readLine();
                     System.out.println("RECEIVED from server: " + resp);
+                    timeout=0;
                     resp = bitstuff.bitstuffOut(resp);
                     Trame trameReceived = util.readTrame(resp);
                     if (trameReceived == null){
@@ -209,9 +198,7 @@ public class Sender {
                             space();
                         }else{
                             //On a un rejet de trame
-                            //currWindow -=1;
                             if (numTrame > countTrameI){
-                                //TODO: Verifier si ok ici
                                 int diff = numTrame - countTrameI;
                                 currWindow = windows - diff;
                             }else{
@@ -239,12 +226,10 @@ public class Sender {
             }
 
             //Envoi fin de la connexion
-            //Tools.Trame F
-            //TODO: Print pas la trame?
             space();
             line();
             System.out.println("Closing the connexion");
-            String toSend = util.makeTrame("F",util.toBinaryFromInt(0),"",polyGen);
+            String toSend = util.makeTrame("F",convert.decimalToBinary(0),"",polyGen);
             toSend = bitstuff.bitstuffIn(toSend);
             out.println(toSend);
             System.exit(0);
@@ -253,20 +238,13 @@ public class Sender {
             System.exit(1);
         } catch (IOException e) {
             System.err.println("Buffer timed out; Server " +
-                    hostName + " not responding =(.");
+                    hostName + " not responding. We need an answer, sending Pbit..");
             return 0;
         }
         return 1;
     }
 
-    private static boolean trameAlive(ArrayList<Paquet> p){
-        for (int i=0; i<p.size();i++){
-            if (!p.get(i).getDead()){
-                return true;
-            }
-        }
-        return false;
-    }
+    /*Parcourt la liste et va chercher la première trame qui a le même numéro de trame et qui n’a pas été confirmée encore. */
     private static Paquet findPaquet(ArrayList<Paquet> p, int num){
         for (int i=0;i<p.size();i++){
             if (p.get(i).getNum()==num && !p.get(i).getDead()){
@@ -276,6 +254,7 @@ public class Sender {
         return null;
     }
 
+    /*Pour chaque entrée dans la liste de données, crée un objet Paquet.*/
     private static ArrayList<Paquet> getAllData(ArrayList<String> tab, int debut){
         int taille = tab.size();
         ArrayList<Paquet> s = new ArrayList<>();
@@ -285,8 +264,9 @@ public class Sender {
         return s;
     }
 
+    /*Prend le string dans le fichier texte et le convertit en String binaire.*/
     private static String convertDonnee(String donnee){
-        byte[] tableau = util.toBinaryFromString(donnee);
+        byte[] tableau = convert.toBinaryFromString(donnee);
         StringBuilder sbDonnee = new StringBuilder();
         for (int i =0; i<tableau.length;i++){
             String too=Byte.toString(tableau[i]);
@@ -302,61 +282,15 @@ public class Sender {
         System.out.println(" --------------------------------------- ");
     }
 
-    public void sendToReceiver(){
-        /*ExecutorService service = Executors.newSingleThreadExecutor();
 
-try {
-    Runnable r = new Runnable() {
-        @Override
-        public void run() {
-            // Database task
-        }
-    };
-
-    Future<?> f = service.submit(r);
-
-    f.get(2, TimeUnit.MINUTES);     // attempt the task for two minutes
-}
-catch (final InterruptedException e) {
-    // The thread was interrupted during sleep, wait or join
-}
-catch (final TimeoutException e) {
-    // Took too long!
-}
-catch (final ExecutionException e) {
-    // An exception from within the Runnable task
-}
-finally {
-    service.shutdown();
-}*/
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                // Your database code here
-            }
-        }, 2*60*1000);
-        long startTime = System.currentTimeMillis();
-        long elapsedTime = 0L;
-
-        while (elapsedTime < 2*60*1000) {
-            elapsedTime = (new Date()).getTime() - startTime;
-        }
-    }
-
-
-    //https://stackoverflow.com/questions/326390/how-do-i-create-a-java-string-from-the-contents-of-a-file
+    //Code modifié de https://stackoverflow.com/questions/326390/how-do-i-create-a-java-string-from-the-contents-of-a-file
     private static ArrayList<String> readFile(String name) throws IOException {
         ArrayList<String> tableau = new ArrayList<>();
         try {
             File file = new File(name);
             String path = file.getAbsolutePath();
-            //TODO: REMOVE
-            path = "/home/whip/TP2_Téléinfo/src/Test/test.txt";
             BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(path), "UTF-8"));
-
             String line;
-
             while ((line = br.readLine()) != null) {
                 tableau.add(line);
             }

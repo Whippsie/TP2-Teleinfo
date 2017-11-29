@@ -3,10 +3,11 @@ package Test;
 public class Tests {
     boolean first = true;
     int times = 0;
-    /* Force le socket à attendre 3 secondes*/
+
+    /* Force le socket à attendre 9 secondes*/
     public void bufferOut(){
         try {
-            Thread.sleep(3000);
+            Thread.sleep(9000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -20,7 +21,6 @@ public class Tests {
         for (int i=0;i<value.length();i++){
             temp = Integer.parseInt(String.valueOf(value.charAt(i)));
             if (i==posToShift){
-                //value.charAt(i) = (1 - Integer.parseInt(value.charAt(i)));
                 temp ^= 1;
             }
             sb.append(temp);

@@ -1,3 +1,5 @@
+package Tools;
+
 import java.nio.charset.StandardCharsets;
 
 public class Conversion {
@@ -22,10 +24,10 @@ public class Conversion {
         if (complete) {
             result = completeByte(result, 8);
         }
-        //System.out.println ("Converted " + charac + " into " + result);
         return result.toString();
     }
 
+    //Complete le chiffre avec des zéros à gauche
     public StringBuilder completeByte(StringBuilder curr, int multiple){
         while (curr.length() != multiple){
             curr.insert(0, '0');
@@ -33,6 +35,7 @@ public class Conversion {
         return curr;
     }
 
+    //Idem mais avec des String
     public String completeByte(String curr, int multiple){
         StringBuilder sb = new StringBuilder();
         int temp = curr.length();
@@ -44,6 +47,7 @@ public class Conversion {
         return sb.toString();
     }
 
+    //Prend un string binaire et le traduit en nombre décimal
     public static int binaryStringToDecimal(String biString){
         int n = biString.length();
         int decimal = 0;
@@ -59,6 +63,7 @@ public class Conversion {
         return decimal;
     }
 
+    //Prend un nombre décimal et le traduit en binaire
     public static String decimalToBinary(int decimal){
         return Integer.toBinaryString(decimal);
     }
